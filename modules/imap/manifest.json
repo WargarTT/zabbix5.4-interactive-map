@@ -1,0 +1,19 @@
+{
+    "manifest_version": 1.0,
+    "id": "interactive_map",
+    "name": "Interactive map",
+    "version": "2.1.2.0-zbx54",
+    "namespace": "Imap",
+    "author": "Zabbix interactive map contributors",
+    "description": "Interactive map module ported for Zabbix 5.4 frontend modules.",
+    "actions": {
+        "imap.view": {
+            "class": "MapView",
+            "view": "module.imap.map.view"
+        },
+        "imap.ajax": {
+            "class": "MapAjax",
+            "layout": null
+        }
+    }
+}
