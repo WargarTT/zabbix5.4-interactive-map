@@ -163,8 +163,8 @@ modules/imap/legacy/map.view.inc.php
 Параметры:
 
 ```javascript
-_imap.settings.startCoordinates = [54.8720, 69.1450];
-_imap.settings.startZoom = 13;
+_imap.settings.startCoordinates = [59.95, 30.29];
+_imap.settings.startZoom = 4;
 ```
 
 Формат координат:
@@ -337,8 +337,8 @@ modules/imap/legacy/map.view.inc.php
 Settings:
 
 ```javascript
-_imap.settings.startCoordinates = [54.8720, 69.1450];
-_imap.settings.startZoom = 13;
+_imap.settings.startCoordinates = [59.95, 30.29];
+_imap.settings.startZoom = 4;
 ```
 
 Coordinate format:
