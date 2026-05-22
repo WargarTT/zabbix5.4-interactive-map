@@ -28,6 +28,7 @@ class MarkerPopup {
         this.element = L.DomUtil.create('div', '');
 
         this.host = null;
+        this.openToken = 0;
     }
 
     setHost(host) {
@@ -125,10 +126,16 @@ class MarkerPopup {
 
 
     onOpenHostPopup(marker, host) {
+        const openToken = ++this.openToken;
+
         this.rebuild(marker, host);
 
         fetchFullHostInfo(host.hostid)
             .then((response) => {
+                if (openToken !== this.openToken) {
+                    return;
+                }
+
                 if (response.data.error) {
                     NotificationService.error(response.data.error);
                     return;
@@ -141,7 +148,13 @@ class MarkerPopup {
                 marker._popup.setContent(this.element);
 
                 fetchGraphList(host.hostid)
-                    .then(response => this.updateContextMenu(response.data));
+                    .then(response => {
+                        if (openToken !== this.openToken) {
+                            return;
+                        }
+
+                        this.updateContextMenu(response.data);
+                    });
             });
 
         this.contextMenu.element.innerHTML = '';
@@ -151,7 +164,13 @@ class MarkerPopup {
 
 
     onCloseHostPopup() {
-        this.contextMenu.element.innerHTML = '';
+        this.openToken++;
+
+        if (this.contextMenu) {
+            this.contextMenu.element.innerHTML = '';
+        }
+
+        this.element.innerHTML = '';
     }
 }
 

@@ -1,7 +1,7 @@
 class LastUpdateService {
     constructor(updateInterval) {
         this.intervalId = null;
-        this.updateInterval = updateInterval || 1000;
+        this.updateInterval = updateInterval || 60000;
     }
 
     run() {
@@ -13,10 +13,14 @@ class LastUpdateService {
     }
 
     update() {
+        const elements = document.querySelectorAll('[lastchange]');
+        if (!elements.length) {
+            return;
+        }
+
         let currentTime = new Date().getTime() / 1000;
 
-        document.querySelectorAll('[lastchange]')
-            .forEach((element) => {
+        elements.forEach((element) => {
                 let diff = currentTime - element.getAttribute('lastchange');
                 element.innerText = this.formatTime(diff);
             });

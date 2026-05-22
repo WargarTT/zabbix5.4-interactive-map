@@ -58,6 +58,7 @@ class TriggerController extends BaseAjaxController
         }
 
         $fallback_options = $options;
+        $fallback_options['output'] = ['triggerid', 'description', 'status', 'value', 'priority', 'lastchange'];
         $fallback_options['expandData'] = true;
         $fallback_options['expandDescription'] = true;
         $fallback_options['selectLastEvent'] = 'extend';
@@ -98,6 +99,7 @@ class TriggerController extends BaseAjaxController
 
         $trigger_options = $options;
         $trigger_options['triggerids'] = array_values($triggerids);
+        $trigger_options['output'] = ['triggerid', 'description', 'status', 'priority', 'lastchange'];
         $trigger_options['expandData'] = true;
         $trigger_options['expandDescription'] = true;
         $trigger_options['selectHosts'] = ['hostid', 'name'];

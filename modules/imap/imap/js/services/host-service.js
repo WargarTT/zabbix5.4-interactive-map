@@ -13,7 +13,7 @@ import {
 import Host from '../models/host';
 
 class HostService {
-    constructor(updateInterval, {hardwareField, minStatus}) {
+    constructor(updateInterval, {hardwareField, minStatus, autoRefresh = false}) {
         this.filterAvailableIds = [];
         this.lastFilterQuery = null;
 
@@ -21,10 +21,12 @@ class HostService {
         this.minStatus = minStatus;
         this.intervalId = null;
         this.updateInterval = updateInterval * 1000;
+        this.autoRefresh = autoRefresh;
 
         this.hostList = {};
 
         this.loading = false;
+        this.loaded = false;
 
         eventBus.on(NOTIFY_NEW_HOST_INFORMATION, (hostId, hostData) => this.refreshHost(hostId, hostData));
         eventBus.on(NOTIFY_HOST_FILTER_UPDATED, (query) => this.updateFilter(query));
@@ -32,19 +34,23 @@ class HostService {
 
     stopTimeout() {
         if (this.intervalId) {
-            this.intervalId = null;
             clearTimeout(this.intervalId);
+            this.intervalId = null;
         }
     }
 
     startTimout() {
+        if (!this.autoRefresh) {
+            return;
+        }
+
         this.stopTimeout();
 
-        this.intervalId = setTimeout(() => this.updateHostList(), this.updateInterval);
+        this.intervalId = setTimeout(() => this.updateHostList({scheduleNext: true, force: true}), this.updateInterval);
     }
 
-    updateHostList() {
-        if (this.loading) {
+    updateHostList({scheduleNext = this.autoRefresh, force = false} = {}) {
+        if (this.loading || (this.loaded && !force)) {
             return;
         }
 
@@ -53,15 +59,21 @@ class HostService {
 
         fetchHostList(this.hardwareField)
             .then(response => {
-                if (response.data.error) {
-                    NotificationService.error(response.data.error.message, __('Hosts'));
+                const hostData = response.data;
+                response.data = null;
+
+                if (hostData.error) {
+                    NotificationService.error(hostData.error.message, __('Hosts'));
                     return;
                 }
 
-                this.prepareHostList(response.data);
+                this.loaded = true;
+                this.prepareHostList(hostData);
             })
             .finally(() => {
-                this.startTimout();
+                if (scheduleNext) {
+                    this.startTimout();
+                }
                 this.loading = false;
             });
     }

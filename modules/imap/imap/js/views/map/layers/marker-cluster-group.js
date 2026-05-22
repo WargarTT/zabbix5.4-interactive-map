@@ -92,7 +92,9 @@ class MarkerClusterGroup extends L.MarkerClusterGroup {
             this.addLayer(marker);
         }
 
-        marker.updateIconByParent();
+        if (marker.iconChanged) {
+            marker.updateIconByParent();
+        }
     }
 }
 

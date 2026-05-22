@@ -135,6 +135,7 @@ class Imap {
         const hostService = new HostService(this.settings.hostUpdateInterval, {
             hardwareField: this.settings.hardwareField,
             minStatus: this.settings.minStatus,
+            autoRefresh: false,
         });
 
         const triggerService = new TriggerService(this.settings.triggerUpdateInterval);
@@ -155,7 +156,7 @@ class Imap {
             triggerService.updateTriggerList();
         });
 
-        hostService.updateHostList();
+        hostService.updateHostList({scheduleNext: false});
 
         eventBus.on(MOVE_TO_HOST, (host, openPopup) => this.viewHostOnMap(this.map, host, openPopup));
     }

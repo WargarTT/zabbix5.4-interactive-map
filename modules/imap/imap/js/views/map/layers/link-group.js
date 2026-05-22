@@ -16,6 +16,12 @@ class LinkLayerGroup extends L.LayerGroup {
         if (link.polyline && this.hasLayer(link.polyline)) {
             this.removeLayer(link.polyline);
         }
+
+        if (link.polyline) {
+            link.polyline.off();
+            link.polyline.unbindTooltip();
+            link.polyline = null;
+        }
     }
 
     /**
@@ -27,30 +33,41 @@ class LinkLayerGroup extends L.LayerGroup {
             return;
         }
 
-        this.removeLink(link);
+        if (!link.polyline) {
+            link.polyline = L.polyline([], {
+                color: link.color,
+                name: '',
+                dashArray: link.dash,
+                opacity: link.opacity,
+                weight: link.weight,
+                smoothFactor: 8
+            });
 
-        let polyline = L.polyline([], {
-            color: link.color,
-            name: '',
-            dashArray: link.dash,
-            opacity: link.opacity,
-            weight: link.weight,
-            smoothFactor: 8
-        });
-
-        link.polyline = polyline;
-
-        let tooltipContainer = L.DomUtil.create('div');
-        if (link.name) {
-            L.DomUtil.create('b', '', tooltipContainer).innerText = link.name;
+            link.polyline.on('click', () => eventBus.emit(OPEN_LINK_OPTIONS_DIALOG, null, link.id));
+        } else {
+            link.polyline.setStyle({
+                color: link.color,
+                dashArray: link.dash,
+                opacity: link.opacity,
+                weight: link.weight,
+            });
         }
 
-        L.DomUtil.create('div', '', tooltipContainer).innerText = `${link.host1.name} <--> ${link.host2.name}`;
+        const tooltipText = `${link.name || ''}|${link.host1.name}<-->${link.host2.name}`;
+        if (link.tooltipText !== tooltipText) {
+            let tooltipContainer = L.DomUtil.create('div');
+            if (link.name) {
+                L.DomUtil.create('b', '', tooltipContainer).innerText = link.name;
+            }
 
-        polyline.bindTooltip(tooltipContainer);
-        polyline.options.name = link.name;
+            L.DomUtil.create('div', '', tooltipContainer).innerText = `${link.host1.name} <--> ${link.host2.name}`;
 
-        polyline.on('click', () => eventBus.emit(OPEN_LINK_OPTIONS_DIALOG, null, link.id));
+            link.polyline.unbindTooltip();
+            link.polyline.bindTooltip(tooltipContainer);
+            link.tooltipText = tooltipText;
+        }
+
+        link.polyline.options.name = link.name;
 
         this.renderLink(link);
     }

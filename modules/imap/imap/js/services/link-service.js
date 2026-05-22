@@ -17,6 +17,8 @@ class LinkService {
 
     constructor() {
         this.loadingVersion = 0;
+        this.loading = false;
+        this.loaded = false;
 
         this.linkList = {};
         this.hostList = {};
@@ -39,7 +41,12 @@ app.imap.vars.intervalTriggersID = window.setInterval(function () {
         return this;
     }
 
-    updateLinkList() {
+    updateLinkList({force = false} = {}) {
+        if (this.loading || (this.loaded && !force)) {
+            return;
+        }
+
+        this.loading = true;
         const version = ++this.loadingVersion;
 
         fetchLinkList()
@@ -48,12 +55,19 @@ app.imap.vars.intervalTriggersID = window.setInterval(function () {
                     return;
                 }
 
-                if (response.data.error) {
-                    NotificationService.error(response.data.error.message, __('Links'));
+                const linkData = response.data;
+                response.data = null;
+
+                if (linkData.error) {
+                    NotificationService.error(linkData.error.message, __('Links'));
                     return;
                 }
 
-                this.prepareLinkList(response.data);
+                this.loaded = true;
+                this.prepareLinkList(linkData);
+            })
+            .finally(() => {
+                this.loading = false;
             });
     }
 
@@ -106,6 +120,7 @@ app.imap.vars.intervalTriggersID = window.setInterval(function () {
     }
 
     receivedLinkData(linkList) {
+        this.loaded = true;
         linkList.forEach(linkData => this.prepareLink(linkData));
         this.rerenderLinks();
     }

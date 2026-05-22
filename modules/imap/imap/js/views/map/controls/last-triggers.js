@@ -93,11 +93,27 @@ class LastTriggers extends L.Control {
     }
 
     addTrigger(trigger) {
+        const triggerState = [
+            trigger.priority,
+            trigger.value,
+            trigger.lastchange,
+            trigger.description,
+            trigger.hosts.map(host => host.name).join('; '),
+            trigger.lastEvent && trigger.lastEvent.id ? trigger.lastEvent.id : '',
+            trigger.lastEvent && trigger.lastEvent.acknowledged ? trigger.lastEvent.acknowledged : '',
+        ].join('|');
+
+        if (this.triggerElements.hasOwnProperty(trigger.id)
+            && this.triggerElements[trigger.id].triggerState === triggerState) {
+            return;
+        }
+
         this.removeTrigger(trigger);
 
         let container = L.DomUtil.create('div', `trigger triggerst${trigger.priority}`, this.lastTriggersDiv);
 
         this.triggerElements[trigger.id] = container;
+        container.triggerState = triggerState;
 
         container.setAttribute('id', 'lasttrigger' + trigger.triggerid);
         container.setAttribute('status', trigger.priority);

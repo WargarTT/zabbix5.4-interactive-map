@@ -186,6 +186,9 @@ span.status-ok {
     display: inline-block !important;
     vertical-align: middle !important;
     margin: 0 auto !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+    background-size: contain !important;
 }
 
 .icon-status-img .marker-hardware-image {
@@ -198,6 +201,9 @@ span.status-ok {
     vertical-align: middle !important;
     margin: 0 auto !important;
     filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.95));
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+    background-size: contain !important;
 }
 
 .marker-tooltip-icon {
@@ -219,9 +225,12 @@ span.status-ok {
 
 .marker-tooltip-status-image,
 .marker-tooltip-hardware-image {
+    display: inline-block;
     width: 16px;
     height: 16px;
-    object-fit: contain;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
 }
 
 .staff-status-unknown {

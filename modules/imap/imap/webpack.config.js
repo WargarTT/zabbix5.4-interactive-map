@@ -1,7 +1,10 @@
 'use strict';
 
+const TerserPlugin = require('terser-webpack-plugin');
+
 module.exports = {
     entry: './app',
+    mode: 'production',
     output: {
         filename: 'build.js',
         library: 'app',
@@ -23,7 +26,14 @@ module.exports = {
             },
         ]
     },
-    watch: true,
+    watch: false,
+    optimization: {
+        minimizer: [
+            new TerserPlugin({
+                parallel: false,
+            }),
+        ],
+    },
 
     devtool: 'source-map',
 };

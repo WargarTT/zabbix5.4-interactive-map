@@ -18,26 +18,31 @@ class ImageIcon extends L.DivIcon {
             classNames.push('maintenance');
         }
 
-        const statusGif = `modules/imap/imap/images/status${status}.gif`;
-        const hasHardware = hardware && hardware !== 'undefined' && hardware !== 'none';
-        let wrapper = L.DomUtil.create('div', hasHardware ? 'marker-icon-wrap marker-icon-wrap-hardware' : 'marker-icon-wrap');
-        let image = new Image();
-        image.className = hasHardware ? 'marker-hardware-image' : 'marker-status-image';
+        const normalizedHardware = ImageIcon.normalizeHardware(hardware);
+        const hasHardware = !!normalizedHardware;
+        const imageUrl = hasHardware
+            ? `modules/imap/imap/hardware/${normalizedHardware}.png`
+            : `modules/imap/imap/images/status${status}.gif`;
 
-        image.onerror = () => {
-            image.src = statusGif;
-            image.className = 'marker-status-image';
-            wrapper.className = 'marker-icon-wrap';
-        };
-
-        image.src = hasHardware ? `modules/imap/imap/hardware/${hardware}.png` : statusGif;
-        wrapper.append(image);
+        const html = [
+            `<span class="${hasHardware ? 'marker-icon-wrap marker-icon-wrap-hardware' : 'marker-icon-wrap'}">`,
+            `<span class="${hasHardware ? 'marker-hardware-image' : 'marker-status-image'}" style="background-image:url('${imageUrl}')"></span>`,
+            '</span>',
+        ].join('');
 
         super({
             className: classNames.join(' '),
-            html: wrapper,
+            html: html,
             iconAnchor: [8, 8]
         });
+    }
+
+    static normalizeHardware(hardware) {
+        if (!hardware || hardware === 'undefined' || hardware === 'none') {
+            return null;
+        }
+
+        return `${hardware}`.replace(/[^a-zA-Z0-9_-]/g, '');
     }
 
 }

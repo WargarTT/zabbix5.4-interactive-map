@@ -11,6 +11,7 @@ class TriggerService {
         this.intervalId = null;
         this.intervalTimeout = intervalTimeout * 1000;
         this.triggerList = {};
+        this.triggerStates = {};
         this.hostList = {};
 
         this.loading = false;
@@ -24,14 +25,16 @@ class TriggerService {
 
     stopInterval() {
         if (this.intervalId) {
-            clearInterval(this.intervalId)
+            clearTimeout(this.intervalId);
+            this.intervalId = null;
         }
 
         return this;
     }
 
     startInterval() {
-        this.intervalId = setInterval(() => this.updateTriggerList(), this.intervalTimeout);
+        this.stopInterval();
+        this.intervalId = setTimeout(() => this.updateTriggerList(), this.intervalTimeout);
 
         return this;
     }
@@ -48,11 +51,15 @@ class TriggerService {
 
         fetchTriggerList()
             .then(response => {
-                if (response.data.error) {
-                    NotificationService.error(response.data.error.message, __('Triggers'));
+                const triggerData = response.data;
+                response.data = null;
+
+                if (triggerData.error) {
+                    NotificationService.error(triggerData.error.message, __('Triggers'));
                     return;
                 }
-                this.prepareTriggerList(response.data);
+
+                this.prepareTriggerList(triggerData);
             })
             .finally(() => {
                 this.startInterval();
@@ -70,15 +77,23 @@ class TriggerService {
                 let trigger = this.triggerList[triggerId];
                 trigger.hosts.forEach(host => host.removeTrigger(triggerId));
                 delete this.triggerList[triggerId];
+                delete this.triggerStates[triggerId];
                 eventBus.emit(NOTIFY_TRIGGER_REMOVED, null, trigger);
             });
 
         triggerIdList.forEach(triggerId => {
-            if (!this.triggerList.hasOwnProperty(triggerId)) {
-                this.triggerList[triggerId] = new Trigger();
+            let triggerData = newTriggerList[triggerId];
+            const triggerState = this.getTriggerState(triggerData);
+
+            if (this.triggerStates[triggerId] === triggerState) {
+                return;
             }
 
-            let triggerData = newTriggerList[triggerId];
+            if (this.triggerList.hasOwnProperty(triggerId)) {
+                this.triggerList[triggerId].hosts.forEach(host => host.removeTrigger(triggerId));
+            } else {
+                this.triggerList[triggerId] = new Trigger();
+            }
 
             // Prepare hosts by host list
             triggerData.hosts = triggerData.hosts
@@ -91,11 +106,33 @@ class TriggerService {
 
             const trigger = this.triggerList[triggerId];
             trigger.load(triggerData);
+            this.triggerStates[triggerId] = triggerState;
 
             triggerData.hosts.forEach(host => host.appendTrigger(trigger));
 
             eventBus.emit(NOTIFY_TRIGGER_UPDATED, null, trigger);
         });
+    }
+
+    getTriggerState(triggerData) {
+        const hosts = Array.isArray(triggerData.hosts)
+            ? triggerData.hosts.map(host => host.hostid).sort().join(',')
+            : '';
+
+        const lastEvent = triggerData.lastEvent || {};
+
+        return [
+            triggerData.triggerid,
+            triggerData.status,
+            triggerData.value,
+            triggerData.priority,
+            triggerData.lastchange,
+            triggerData.description,
+            hosts,
+            lastEvent.eventid || '',
+            lastEvent.acknowledged || '',
+            lastEvent.severity || '',
+        ].join('|');
     }
 }
 
