@@ -23,5 +23,13 @@ abstract class Response
     /**
      * @return mixed
      */
+    public function getResult()
+    {
+        return $this->result;
+    }
+
+    /**
+     * @return mixed
+     */
     abstract public function response();
 }

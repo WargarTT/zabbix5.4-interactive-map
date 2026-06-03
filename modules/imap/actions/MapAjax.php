@@ -3,6 +3,7 @@
 namespace Modules\Imap\Actions;
 
 use CController;
+use CControllerResponseData;
 use Imap\Components\Request;
 use Imap\Components\Route;
 use Imap\Components\Router;
@@ -31,10 +32,6 @@ class MapAjax extends CController {
     protected function doAction(): void {
         Bootstrap::init();
 
-        if (!headers_sent()) {
-            header('Content-Type: application/json; charset=UTF-8');
-        }
-
         $request = new Request();
         $router = (new Router($request))
             ->addRoute(new Route('ajax/hosts/view', HostController::class, 'view'))
@@ -51,13 +48,16 @@ class MapAjax extends CController {
             ->addRoute(new Route('ajax/hardware', HardwareController::class, 'index'))
             ->addRoute(new Route('ajax/hardware/update', HardwareController::class, 'update'));
 
-        if (!$router->handleRoute()) {
-            echo json_encode([
+        $result = $router->dispatch();
+        if ($result === null) {
+            $result = [
                 'jsonrpc' => '2.0',
                 'error' => ['message' => 'Route not found.']
-            ]);
+            ];
         }
 
-        exit;
+        $this->setResponse(new CControllerResponseData([
+            'main_block' => json_encode($result)
+        ]));
     }
 }

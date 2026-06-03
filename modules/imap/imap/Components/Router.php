@@ -40,22 +40,20 @@ class Router
     }
 
     /**
-     * @return bool
+     * @return mixed|null
      * @throws Exception
      */
-    public function handleRoute(): bool
+    public function dispatch()
     {
         $routeName = $this->request->getQueryParam('r');
         if ($routeName === null) {
-            return false;
+            return null;
         }
 
         $route = $this->routes[$routeName] ?? null;
         if ($route === null) {
-            // TODO: найти подходящее исключение
-            invalid_url('Route not found');
+            return null;
         }
-
 
         $controllerName = $route->getController();
         $controller = new $controllerName($this->request, $route);
@@ -64,12 +62,23 @@ class Router
             throw new RuntimeException('Controller must be subclass of BaseController');
         }
 
-        $response = $controller->run();
+        return $controller->run()->getResult();
+    }
 
+    /**
+     * @return bool
+     * @throws Exception
+     */
+    public function handleRoute(): bool
+    {
+        $result = $this->dispatch();
+        if ($result === null) {
+            return false;
+        }
+
+        $response = new AjaxResponse($result);
         $response->response();
 
         return true;
     }
-
-
 }
