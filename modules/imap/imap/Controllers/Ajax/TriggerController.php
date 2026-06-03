@@ -38,10 +38,18 @@ class TriggerController extends BaseAjaxController
         }
 
         $problems = API::Problem()->get($problem_options);
+        if (!is_array($problems)) {
+            $problems = [];
+        }
+
         $triggerids = [];
         $last_events = [];
 
         foreach ($problems as $problem) {
+            if (!is_array($problem)) {
+                continue;
+            }
+
             if (!array_key_exists('objectid', $problem)) {
                 continue;
             }
@@ -72,7 +80,16 @@ class TriggerController extends BaseAjaxController
         $fallback_options['selectHosts'] = ['hostid', 'name'];
         $fallback_options['preservekeys'] = true;
 
-        foreach (API::Trigger()->get($fallback_options) as $triggerid => $trigger) {
+        $fallback_triggers = API::Trigger()->get($fallback_options);
+        if (!is_array($fallback_triggers)) {
+            $fallback_triggers = [];
+        }
+
+        foreach ($fallback_triggers as $triggerid => $trigger) {
+            if (!is_array($trigger)) {
+                continue;
+            }
+
             if (array_key_exists($triggerid, $triggerids)) {
                 continue;
             }
@@ -107,8 +124,15 @@ class TriggerController extends BaseAjaxController
         unset($trigger_options['hostids'], $trigger_options['groupids']);
 
         $triggers = API::Trigger()->get($trigger_options);
+        if (!is_array($triggers)) {
+            return [];
+        }
 
         foreach ($triggers as $triggerid => &$trigger) {
+            if (!array_key_exists($triggerid, $last_events)) {
+                continue;
+            }
+
             $trigger['value'] = TRIGGER_VALUE_TRUE;
             $trigger['lastEvent'] = $last_events[$triggerid];
         }
