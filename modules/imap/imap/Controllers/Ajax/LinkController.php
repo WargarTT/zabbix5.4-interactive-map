@@ -33,25 +33,44 @@ class LinkController extends BaseAjaxController
     {
         $res = [];
 
+        if (!is_array($hostLinks)) {
+            $hostLinks = [];
+        }
+
+        if (!is_array($hostsLinksSettings)) {
+            $hostsLinksSettings = [];
+        }
+
         foreach ($hostLinks as $record) {
+            if (!is_array($record)) {
+                continue;
+            }
+
             foreach ($hostsLinksSettings as $res2t) {
-                if ($record['id'] === $res2t['ids']) {
+                if (!is_array($res2t)) {
+                    continue;
+                }
+
+                if (array_key_exists('id', $record)
+                        && array_key_exists('ids', $res2t)
+                        && $record['id'] === $res2t['ids']) {
                     $record += $res2t;
                 }
             }
 
-            if (!$record['dash']) {
+            if (!array_key_exists('dash', $record) || !$record['dash']) {
                 $record['dash'] = null;
             }
 
-            if (!$record['weight']) {
+            if (!array_key_exists('weight', $record) || !$record['weight']) {
                 $record['weight'] = null;
             }
 
-            if (!$record['color']) {
+            if (!array_key_exists('color', $record) || !$record['color']) {
                 $record['color'] = null;
             }
-            if (!$record['opacity']) {
+
+            if (!array_key_exists('opacity', $record) || !$record['opacity']) {
                 $record['opacity'] = null;
             }
 
@@ -167,16 +186,19 @@ class LinkController extends BaseAjaxController
         }
 
         $linkOptions = $this->request->getBodyParam('linkoptions', []);
+        if (!is_array($linkOptions)) {
+            $linkOptions = [];
+        }
 
-        $newLink = ['values' => ['name' => $linkOptions['name']], 'where' => ['id' => $linkId]];
+        $newLink = ['values' => ['name' => $linkOptions['name'] ?? ''], 'where' => ['id' => $linkId]];
 
         DBimap::update('hosts_links', [$newLink]);
         DBimap::delete('hosts_links_settings', ['ids' => [$linkId]]);
         DBimap::insert('hosts_links_settings', [[
             'ids' => $linkId,
-            'color' => $linkOptions['color'],
-            'weight' => $linkOptions['weight'],
-            'opacity' => $linkOptions['opacity'],
+            'color' => $linkOptions['color'] ?? null,
+            'weight' => $linkOptions['weight'] ?? null,
+            'opacity' => $linkOptions['opacity'] ?? null,
         ]
         ]);
 

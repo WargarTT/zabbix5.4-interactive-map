@@ -3,7 +3,6 @@
 namespace Modules\Imap\Actions;
 
 use CController;
-use CControllerResponseData;
 use Imap\Components\Request;
 use Imap\Components\Route;
 use Imap\Components\Router;
@@ -56,8 +55,15 @@ class MapAjax extends CController {
             ];
         }
 
-        $this->setResponse(new CControllerResponseData([
-            'main_block' => json_encode($result)
-        ]));
+        if (function_exists('session_write_close') && session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=UTF-8');
+        }
+
+        echo json_encode($result, 0);
+        exit;
     }
 }

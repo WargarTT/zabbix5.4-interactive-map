@@ -30,6 +30,14 @@ class AjaxResponse extends Response
      */
     public function response()
     {
+        if (function_exists('session_write_close') && session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=UTF-8');
+        }
+
         echo json_encode($this->result, FALSE);
         exit();
     }
